@@ -33,8 +33,11 @@ const addContact = async body => {
   return user;
 };
 
-const updateContact = async (contactId, body) => {
+const updateContact = async (contactId, body, res) => {
   const user = await getContactById(contactId);
+  if (!body.name || !body.email || !body.phone) {
+    return res.status(400).json({ message: "missing feilds" });
+  }
   Object.assign(user, body);
   const contacts = await listContacts();
 

@@ -15,9 +15,11 @@ router.get("/", async (req, res, next) => {
 router.get("/:contactId", async (req, res, next) => {
   try {
     const contact = await Contacts.getContactById(req.params.contactId);
+    if (!contact) {
+      return res.status(404).json({ message: "Not found" });
+    }
     return res.json({ status: "success", code: 200, data: { contact } });
   } catch (error) {
-    res.json({ status: "rejected", code: 404, message: "Not found" });
     next(error);
   }
 });
@@ -38,14 +40,15 @@ router.post("/", validateAddedContact, async (req, res, next) => {
 
 router.delete("/:contactId", async (req, res, next) => {
   try {
-    await Contacts.removeContact(req.params.contactId);
+    const contact = await Contacts.removeContact(req.params.contactId);
+    if (!contact) {
+      return res.status(404).json({ status: "rejected", message: "Not found" });
+    }
     return res.json({
       status: "success",
-      code: 200,
       message: "contact deleted",
     });
   } catch (error) {
-    res.json({ status: "rejected", code: 404, message: "Not found" });
     next(error);
   }
 });
@@ -54,17 +57,17 @@ router.put("/:contactId", validateUpdatedContact, async (req, res, next) => {
   try {
     const contact = await Contacts.updateContact(
       req.params.contactId,
-      req.body
+      req.body,
+      res
     );
     return res.json({
       status: "success",
-      code: 200,
       message: "contact updated",
       contact: contact,
     });
   } catch (error) {
-    res.json({ status: "rejected", code: 404, message: "Not found" });
     next(error);
+    res.status(404).json({ message: "Not found" });
   }
 });
 
