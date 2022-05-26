@@ -2,19 +2,11 @@ const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 
-// process.env.SECRET_KEY;
-// process.env.NODE_ENV;
-
 const contactsRouter = require("./routes/api/contacts");
 
 const app = express();
-// const PORT = 3000;
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
-
-// app.listen(PORT, () => {
-//   console.log("Server listen port", PORT);
-// });
 
 app.use(logger(formatsLogger));
 app.use(cors());

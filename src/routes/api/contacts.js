@@ -1,11 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const Contacts = require("../../models/contacts");
-const { validateAddedContact, validateUpdatedContact } = require("./validator");
+const {
+  validateAddedContact,
+  validateUpdatedContact,
+  validatePatch,
+} = require("./validator");
+
+const { UserModel } = require("../../db/contacts.model");
 
 router.get("/", async (req, res, next) => {
   try {
-    const contacts = await Contacts.listContacts();
+    const contacts = await UserModel.find();
     return res.json({ status: "success", code: 200, data: { contacts } });
   } catch (error) {
     next(error);
@@ -14,7 +19,7 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:contactId", async (req, res, next) => {
   try {
-    const contact = await Contacts.getContactById(req.params.contactId);
+    const contact = await UserModel.findById(req.params.contactId);
     if (!contact) {
       return res.status(404).json({ message: "Not found" });
     }
@@ -26,7 +31,7 @@ router.get("/:contactId", async (req, res, next) => {
 
 router.post("/", validateAddedContact, async (req, res, next) => {
   try {
-    const contact = await Contacts.addContact(req.body);
+    const contact = await UserModel.create(req.body);
     return res.json({ contact });
   } catch (error) {
     res.json({
@@ -40,7 +45,7 @@ router.post("/", validateAddedContact, async (req, res, next) => {
 
 router.delete("/:contactId", async (req, res, next) => {
   try {
-    const contact = await Contacts.removeContact(req.params.contactId);
+    const contact = await UserModel.findByIdAndRemove(req.params.contactId);
     if (!contact) {
       return res.status(404).json({ status: "rejected", message: "Not found" });
     }
@@ -55,10 +60,12 @@ router.delete("/:contactId", async (req, res, next) => {
 
 router.put("/:contactId", validateUpdatedContact, async (req, res, next) => {
   try {
-    const contact = await Contacts.updateContact(
+    const contact = await UserModel.findByIdAndUpdate(
       req.params.contactId,
       req.body,
-      res
+      {
+        new: true,
+      }
     );
     return res.json({
       status: "success",
@@ -68,6 +75,26 @@ router.put("/:contactId", validateUpdatedContact, async (req, res, next) => {
   } catch (error) {
     next(error);
     res.status(404).json({ message: "Not found" });
+  }
+});
+
+router.patch("/:contactId", validatePatch, async (req, res, next) => {
+  try {
+    if (!req.body.favorite)
+      return res.status(400).json({ message: "missing field favorite" });
+    else {
+      const upDateContact = await UserModel.findByIdAndUpdate(
+        req.params.contactId,
+        req.body,
+        {
+          new: true,
+        }
+      );
+      res.json(upDateContact);
+    }
+  } catch (error) {
+    res.status(404).json({ message: "Not found" });
+    console.log(error.message);
   }
 });
 
