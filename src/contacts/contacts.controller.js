@@ -1,25 +1,27 @@
-const express = require("express");
-const router = express.Router();
-const {
-  validateAddedContact,
-  validateUpdatedContact,
-  validatePatch,
-} = require("./validator");
+const { ContactModel } = require("./contacts.model");
 
-const { UserModel } = require("../../db/contacts.model");
-
-router.get("/", async (req, res, next) => {
+const getContacts = async (req, res, next) => {
   try {
-    const contacts = await UserModel.find();
+    const contacts = await ContactModel.find({ owner: req.userId });
+    res.json(contacts);
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+// getContact
+const getContact = async (req, res, next) => {
+  try {
+    const contacts = await ContactModel.find();
     return res.json({ status: "success", code: 200, data: { contacts } });
   } catch (error) {
     next(error);
   }
-});
+};
 
-router.get("/:contactId", async (req, res, next) => {
+// getContactById
+const getContactById = async (req, res, next) => {
   try {
-    const contact = await UserModel.findById(req.params.contactId);
+    const contact = await ContactModel.findById(req.params.contactId);
     if (!contact) {
       return res.status(404).json({ message: "Not found" });
     }
@@ -27,12 +29,13 @@ router.get("/:contactId", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
 
-router.post("/", validateAddedContact, async (req, res, next) => {
+// createContact
+const createContact = async (req, res, next) => {
   try {
-    const contact = await UserModel.create(req.body);
-    return res.json({ contact });
+    const contact = await ContactModel.create(req.body);
+    res.status(201).json(contact);
   } catch (error) {
     res.json({
       status: "rejected",
@@ -41,11 +44,12 @@ router.post("/", validateAddedContact, async (req, res, next) => {
     });
     next(error);
   }
-});
+};
 
-router.delete("/:contactId", async (req, res, next) => {
+// deleteContact
+const deleteContact = async (req, res, next) => {
   try {
-    const contact = await UserModel.findByIdAndRemove(req.params.contactId);
+    const contact = await ContactModel.findByIdAndRemove(req.params.contactId);
     if (!contact) {
       return res.status(404).json({ status: "rejected", message: "Not found" });
     }
@@ -56,11 +60,12 @@ router.delete("/:contactId", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
 
-router.put("/:contactId", validateUpdatedContact, async (req, res, next) => {
+// updateContact
+const updateContact = async (req, res, next) => {
   try {
-    const contact = await UserModel.findByIdAndUpdate(
+    const contact = await ContactModel.findByIdAndUpdate(
       req.params.contactId,
       req.body,
       {
@@ -76,14 +81,15 @@ router.put("/:contactId", validateUpdatedContact, async (req, res, next) => {
     next(error);
     res.status(404).json({ message: "Not found" });
   }
-});
+};
 
-router.patch("/:contactId", validatePatch, async (req, res, next) => {
+// updateStatusContact
+const updateStatusContact = async (req, res, next) => {
   try {
     if (!req.body.favorite)
       return res.status(400).json({ message: "missing field favorite" });
     else {
-      const upDateContact = await UserModel.findByIdAndUpdate(
+      const upDateContact = await ContactModel.findByIdAndUpdate(
         req.params.contactId,
         req.body,
         {
@@ -96,6 +102,14 @@ router.patch("/:contactId", validatePatch, async (req, res, next) => {
     res.status(404).json({ message: "Not found" });
     console.log(error.message);
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  getContacts,
+  getContact,
+  getContactById,
+  createContact,
+  deleteContact,
+  updateContact,
+  updateStatusContact,
+};
