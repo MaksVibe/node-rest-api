@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const userSchema = new Schema({
+const ContactSchema = new Schema({
   name: {
     type: String,
     required: [true, "Set name for contact"],
@@ -16,7 +16,11 @@ const userSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: "user",
+  },
 });
 
-const UserModel = mongoose.model("Contact", userSchema);
-exports.UserModel = UserModel;
+const ContactModel = mongoose.model("Contact", ContactSchema);
+exports.ContactModel = ContactModel;
